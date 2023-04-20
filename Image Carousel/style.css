@@ -12,7 +12,7 @@ body {
     background-color: #eee;
 }
 .carousel {
-    width: 100%;
+    width: 800px;
     overflow: hidden;
 }
 .imgs {
