@@ -2,30 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Drink Water</title>
+    <title>SignalR Chat (Send to Specific User)</title>
 </head>
 <body>
-    <h4>Goal: 2 liters</h4>
-    <div class="container">
-        <div class="res">
-            <p></p>
-        </div>
+    <h1>SignalR Chat - Send to Specific User</h1>
 
+    <div>
+        <label for="message">Enter Message:</label>
+        <input type="text" id="message" placeholder="Message" />
+        <label for="targetUserId">Target User ID:</label>
+        <input type="text" id="targetUserId" placeholder="Target User ID" />
+        <button onclick="SendMessage()">Send Message</button>
     </div>
-    <p>Select how many glasses of water that you have drank</p>
-    <div class="water">
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-        <span>250<br>ml</span>
-    </div>
-    <script src="main.js"></script>
+
+    <h2>Messages</h2>
+    <ul id="messagesList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.9/signalr.js"></script>
+    <script>
+        let connection = null;
+        let userId=0
+        // Function to start SignalR connection
+        function startConnection() {
+            //  userId = prompt("Enter your user ID:"); // Prompt the user for their user ID
+
+             connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://e.somee.com/chatHub")
+    .build();
+
+            connection.start()
+                .then(() => {
+                    
+                    // Listen for incoming messages
+                    connection.on("ReceiveMessage", (message) => {
+                        const messagesList = document.getElementById("messagesList");
+                        const li = document.createElement("li");
+                        li.textContent = message;
+                        messagesList.appendChild(li);
+                    });
+                })
+                .catch(err => console.error("Error connecting to SignalR:", err));
+        }
+
+        // Function to send a message to a specific user
+        function SendMessage() {
+            const message = document.getElementById("message").value;
+            const targetUserId = document.getElementById("targetUserId").value;
+
+            if (connection) {
+                connection.invoke("SendMessage",message)
+                    .then(() => {
+                        console.log("Message sent to user: " + targetUserId);
+                    })
+                    .catch(err => console.error("Error sending message:", err));
+            }
+        }
+
+        // Start the SignalR connection when the page loads
+        window.onload = function() {
+            fetch('https://e.somee.com/api/Values').then(e=>e.text()).then(e=>console.log(e))
+            
+            startConnection();
+        };
+    </script>
 </body>
 </html>
